@@ -1,0 +1,33 @@
+{{- if .Values.operator.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "powerdns-platform.fullname" . }}-operator
+spec:
+  replicas: {{ .Values.operator.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "powerdns-platform.name" . }}
+      app.kubernetes.io/component: operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "powerdns-platform.name" . }}
+        app.kubernetes.io/component: operator
+    spec:
+      serviceAccountName: {{ include "powerdns-platform.fullname" . }}-operator
+      containers:
+        - name: manager
+          image: {{ include "powerdns-platform.image" . }}
+          imagePullPolicy: {{ .Values.global.pullPolicy }}
+          args:
+            - --metrics-bind-address=:8080
+            - --health-probe-bind-address=:8081
+            - --leader-elect=true
+          ports:
+            - containerPort: 8080
+              name: metrics
+            - containerPort: 8081
+              name: health
+          resources: {{- toYaml .Values.operator.resources | nindent 12 }}
+{{- end }}

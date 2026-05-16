@@ -1,0 +1,267 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: powerdnsclusters.dns.powerdns.io
+spec:
+  group: dns.powerdns.io
+  scope: Namespaced
+  names:
+    plural: powerdnsclusters
+    singular: powerdnscluster
+    kind: PowerDNSCluster
+    shortNames:
+      - pdns
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Ready
+          type: string
+          jsonPath: .status.readyReplicas
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              properties:
+                replicas:
+                  type: integer
+                  minimum: 1
+                image:
+                  type: string
+                imagePullPolicy:
+                  type: string
+                service:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    annotations:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    labels:
+                      type: object
+                      additionalProperties:
+                        type: string
+                powerdns:
+                  type: object
+                  properties:
+                    apiEnabled:
+                      type: boolean
+                    apiKeySecretRef:
+                      type: string
+                    webServerAddress:
+                      type: string
+                    webServerPort:
+                      type: integer
+                    allowAxfr:
+                      type: boolean
+                    allowIxfr:
+                      type: boolean
+                    enableDnssec:
+                      type: boolean
+                    zoneTransferAcl:
+                      type: array
+                      items:
+                        type: string
+                postgresql:
+                  type: object
+                  properties:
+                    mode:
+                      type: string
+                      enum: [cloudnativepg, patroni, crunchy, manual]
+                    image:
+                      type: string
+                    imagePullPolicy:
+                      type: string
+                    connectionPooler:
+                      type: boolean
+                    provider:
+                      type: string
+                    storageClass:
+                      type: string
+                    storageSize:
+                      type: string
+                    credentialsSecretRef:
+                      type: string
+                    syncReplication:
+                      type: boolean
+                    walArchive:
+                      type: boolean
+                    pitr:
+                      type: boolean
+                    backupSchedule:
+                      type: string
+                    readReplicas:
+                      type: integer
+                    tls:
+                      type: boolean
+                dnssec:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    kskSecretRef:
+                      type: string
+                    zskSecretRef:
+                      type: string
+                    algorithm:
+                      type: string
+                    keyRollInterval:
+                      type: string
+                admin:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    image:
+                      type: string
+                    imagePullPolicy:
+                      type: string
+                    replicas:
+                      type: integer
+                    servicePort:
+                      type: integer
+                    ingressHost:
+                      type: string
+                    secretKeySecretRef:
+                      type: string
+                    apiUrl:
+                      type: string
+                    apiTokenSecretRef:
+                      type: string
+                backups:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    schedule:
+                      type: string
+                    retention:
+                      type: string
+                    target:
+                      type: string
+                    verify:
+                      type: boolean
+                monitoring:
+                  type: object
+                  properties:
+                    serviceMonitor:
+                      type: boolean
+                    prometheusRules:
+                      type: boolean
+                    grafanaDashboards:
+                      type: boolean
+                    openTelemetry:
+                      type: boolean
+                security:
+                  type: object
+                  properties:
+                    tls:
+                      type: boolean
+                    mtls:
+                      type: boolean
+                    readOnlyRootFilesystem:
+                      type: boolean
+                    runAsNonRoot:
+                      type: boolean
+                    podSecurityStandard:
+                      type: string
+                    networkPolicies:
+                      type: boolean
+                    secretEncryption:
+                      type: boolean
+                scheduling:
+                  type: object
+                  properties:
+                    antiAffinity:
+                      type: boolean
+                    topologySpreadConstraints:
+                      type: boolean
+                    nodeSelector:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    zones:
+                      type: array
+                      items:
+                        type: string
+                scaling:
+                  type: object
+                  properties:
+                    horizontalAutoscaler:
+                      type: boolean
+                    verticalAutoscaler:
+                      type: boolean
+                    minReplicas:
+                      type: integer
+                    maxReplicas:
+                      type: integer
+                openstack:
+                  type: object
+                  properties:
+                    designateEnabled:
+                      type: boolean
+                    keystoneAuth:
+                      type: boolean
+                    tenantIsolation:
+                      type: boolean
+                    reverseDns:
+                      type: boolean
+                    multiRegion:
+                      type: boolean
+            status:
+              type: object
+              properties:
+                observedGeneration:
+                  type: integer
+                  format: int64
+                phase:
+                  type: string
+                readyReplicas:
+                  type: integer
+                  format: int32
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      observedGeneration:
+                        type: integer
+                        format: int64
+                      reason:
+                        type: string
+                      message:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                endpoints:
+                  type: object
+                  properties:
+                    api:
+                      type: string
+                    dns:
+                      type: string
+                    postgresql:
+                      type: string
+                lastBackupTime:
+                  type: string
+                  format: date-time

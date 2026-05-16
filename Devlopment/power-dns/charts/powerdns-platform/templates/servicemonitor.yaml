@@ -1,0 +1,17 @@
+{{- if .Values.operator.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "powerdns-platform.fullname" . }}-operator
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "powerdns-platform.name" . }}
+      app.kubernetes.io/component: operator
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: metrics
+      interval: 30s
+{{- end }}

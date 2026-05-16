@@ -1,0 +1,66 @@
+apiVersion: dns.powerdns.io/v1alpha1
+kind: PowerDNSCluster
+metadata:
+  name: example
+spec:
+  replicas: 3
+  image: ghcr.io/example/powerdns-authoritative:4.8
+  powerdns:
+    apiEnabled: true
+    apiKeySecretRef: powerdns-api-key
+    allowAxfr: true
+    allowIxfr: true
+    enableDnssec: true
+  postgresql:
+    mode: cloudnativepg
+    connectionPooler: true
+    storageClass: fast-rwo
+    storageSize: 200Gi
+    syncReplication: true
+    walArchive: true
+    pitr: true
+    backupSchedule: "0 */6 * * *"
+    readReplicas: 2
+    tls: true
+  dnssec:
+    enabled: true
+    kskSecretRef: powerdns-ksk
+    zskSecretRef: powerdns-zsk
+    algorithm: ed25519
+    keyRollInterval: 30d
+  backups:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: 14d
+    target: s3://powerdns-backups/prod
+    verify: true
+  monitoring:
+    serviceMonitor: true
+    prometheusRules: true
+    grafanaDashboards: true
+    openTelemetry: true
+  security:
+    tls: true
+    mtls: true
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    podSecurityStandard: restricted
+    networkPolicies: true
+    secretEncryption: true
+  scheduling:
+    antiAffinity: true
+    topologySpreadConstraints: true
+    zones:
+      - zone-a
+      - zone-b
+      - zone-c
+  scaling:
+    horizontalAutoscaler: true
+    minReplicas: 3
+    maxReplicas: 12
+  openstack:
+    designateEnabled: true
+    keystoneAuth: true
+    tenantIsolation: true
+    reverseDns: true
+    multiRegion: true

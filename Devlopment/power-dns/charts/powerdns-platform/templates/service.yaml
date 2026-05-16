@@ -1,0 +1,20 @@
+{{- if .Values.operator.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "powerdns-platform.fullname" . }}-operator
+  labels:
+    app.kubernetes.io/name: {{ include "powerdns-platform.name" . }}
+    app.kubernetes.io/component: operator
+spec:
+  selector:
+    app.kubernetes.io/name: {{ include "powerdns-platform.name" . }}
+    app.kubernetes.io/component: operator
+  ports:
+    - name: metrics
+      port: {{ .Values.operator.service.metricsPort }}
+      targetPort: metrics
+    - name: health
+      port: {{ .Values.operator.service.healthPort }}
+      targetPort: health
+{{- end }}

@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: powerdns-platform
+  namespace: dns-platform
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: powerdns-platform
+  namespaceSelector:
+    matchNames:
+      - dns-platform
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s

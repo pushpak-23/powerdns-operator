@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: powerdns-platform
+  namespace: argocd
+spec:
+  project: platform
+  source:
+    repoURL: https://example.invalid/powerdns-platform.git
+    targetRevision: main
+    path: manifests/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dns-platform
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

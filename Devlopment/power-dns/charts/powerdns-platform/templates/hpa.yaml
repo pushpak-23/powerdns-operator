@@ -1,0 +1,20 @@
+{{- if .Values.operator.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "powerdns-platform.fullname" . }}-operator
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "powerdns-platform.fullname" . }}-operator
+  minReplicas: {{ .Values.operator.hpa.minReplicas | default 2 }}
+  maxReplicas: {{ .Values.operator.hpa.maxReplicas | default 5 }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+{{- end }}

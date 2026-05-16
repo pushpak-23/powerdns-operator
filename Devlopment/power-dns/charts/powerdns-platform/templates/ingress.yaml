@@ -1,0 +1,22 @@
+{{- if .Values.operator.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "powerdns-platform.fullname" . }}-operator
+spec:
+  tls:
+    - hosts:
+        - {{ .Values.operator.ingress.host | default "powerdns.example.invalid" }}
+      secretName: {{ .Values.operator.ingress.tlsSecretName | default "powerdns-operator-tls" }}
+  rules:
+    - host: {{ .Values.operator.ingress.host | default "powerdns.example.invalid" }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "powerdns-platform.fullname" . }}-operator
+                port:
+                  number: {{ .Values.operator.service.metricsPort }}
+{{- end }}
