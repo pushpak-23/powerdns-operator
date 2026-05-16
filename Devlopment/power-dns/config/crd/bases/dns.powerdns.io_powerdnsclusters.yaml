@@ -82,7 +82,7 @@ spec:
                   properties:
                     mode:
                       type: string
-                      enum: [cloudnativepg, patroni, crunchy, manual]
+                      enum: [cloudnativepg, patroni, crunchy, manual, bitnami]
                     image:
                       type: string
                     imagePullPolicy:
@@ -142,6 +142,8 @@ spec:
                     apiUrl:
                       type: string
                     apiTokenSecretRef:
+                      type: string
+                    databaseUriSecretRef:
                       type: string
                 backups:
                   type: object

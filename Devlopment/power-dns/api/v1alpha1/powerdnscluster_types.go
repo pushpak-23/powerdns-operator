@@ -91,6 +91,7 @@ type PowerDNSAdminSpec struct {
 	SecretKeySecretRef string `json:"secretKeySecretRef,omitempty"`
 	APIURL string `json:"apiUrl,omitempty"`
 	APITokenSecretRef string `json:"apiTokenSecretRef,omitempty"`
+	DatabaseURISecretRef string `json:"databaseUriSecretRef,omitempty"`
 }
 
 type BackupSpec struct {

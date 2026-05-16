@@ -1,0 +1,6 @@
+apiVersion: v2
+name: powerdns-stack
+description: Application chart for deploying PowerDNS, PostgreSQL, and PowerDNS Admin through the PowerDNS operator
+type: application
+version: 0.1.0
+appVersion: "1.0"

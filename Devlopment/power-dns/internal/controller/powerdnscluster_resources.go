@@ -80,6 +80,14 @@ func (r *PowerDNSClusterReconciler) readyReplicas(ctx context.Context, instance 
 	return ready
 }
 
+func (r *PowerDNSClusterReconciler) desiredReadyReplicas(instance *platformv1alpha1.PowerDNSCluster) int32 {
+	desired := int32(1) + max32(instance.Spec.Replicas, 1)
+	if instance.Spec.Admin.Enabled {
+		desired += max32(instance.Spec.Admin.Replicas, 1)
+	}
+	return desired
+}
+
 func (r *PowerDNSClusterReconciler) applyObject(ctx context.Context, obj client.Object) error {
 	desired := obj.DeepCopyObject().(client.Object)
 	key := client.ObjectKeyFromObject(obj)
@@ -214,7 +222,7 @@ func (r *PowerDNSClusterReconciler) desiredPostgreSQLStatefulSet(instance *platf
 				ObjectMeta: metav1.ObjectMeta{Name: "data"},
 				Spec: corev1.PersistentVolumeClaimSpec{
 					AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-					Resources: corev1.ResourceRequirements{Requests: corev1.ResourceList{
+					Resources: corev1.VolumeResourceRequirements{Requests: corev1.ResourceList{
 						corev1.ResourceStorage: resource.MustParse(storage),
 					}},
 				},
@@ -225,6 +233,7 @@ func (r *PowerDNSClusterReconciler) desiredPostgreSQLStatefulSet(instance *platf
 
 func (r *PowerDNSClusterReconciler) desiredPowerDNSService(instance *platformv1alpha1.PowerDNSCluster) *corev1.Service {
 	labels := baseLabels(instance, "powerdns")
+	apiPort := powerDNSAPIPort(instance)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      powerDNSName(instance),
@@ -234,15 +243,16 @@ func (r *PowerDNSClusterReconciler) desiredPowerDNSService(instance *platformv1a
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Type:     serviceTypeOrDefault(instance.Spec.Service.Type),
-			Ports: []corev1.ServicePort{{Name: "dns-tcp", Port: defaultPowerDNSPort, TargetPort: intstr.FromInt(defaultPowerDNSPort), Protocol: corev1.ProtocolTCP}, {
-				Name: "dns-udp", Port: defaultPowerDNSPort, TargetPort: intstr.FromInt(defaultPowerDNSPort), Protocol: corev1.ProtocolUDP}, {
-				Name: "api", Port: defaultPowerDNSAPIHealth, TargetPort: intstr.FromInt(defaultPowerDNSAPIHealth), Protocol: corev1.ProtocolTCP}},
+					Ports: []corev1.ServicePort{{Name: "dns-tcp", Port: defaultPowerDNSPort, TargetPort: intstr.FromInt(defaultPowerDNSPort), Protocol: corev1.ProtocolTCP}, {
+						Name: "dns-udp", Port: defaultPowerDNSPort, TargetPort: intstr.FromInt(defaultPowerDNSPort), Protocol: corev1.ProtocolUDP}, {
+						Name: "api", Port: apiPort, TargetPort: intstr.FromInt(int(apiPort)), Protocol: corev1.ProtocolTCP}},
 		},
 	}
 }
 
 func (r *PowerDNSClusterReconciler) desiredPowerDNSDeployment(instance *platformv1alpha1.PowerDNSCluster) *appsv1.Deployment {
 	labels := baseLabels(instance, "powerdns")
+	apiPort := powerDNSAPIPort(instance)
 	image := instance.Spec.Image
 	if image == "" {
 		image = defaultPowerDNSImage
@@ -272,8 +282,8 @@ func (r *PowerDNSClusterReconciler) desiredPowerDNSDeployment(instance *platform
 						Name:            "powerdns",
 						Image:           image,
 						ImagePullPolicy: policy,
-						Ports: []corev1.ContainerPort{{Name: "dns-tcp", ContainerPort: defaultPowerDNSPort, Protocol: corev1.ProtocolTCP}, {Name: "dns-udp", ContainerPort: defaultPowerDNSPort, Protocol: corev1.ProtocolUDP}, {Name: "api", ContainerPort: defaultPowerDNSAPIHealth, Protocol: corev1.ProtocolTCP}},
-						Env: []corev1.EnvVar{{Name: "PDNS_GPGSQL_HOST", Value: postgresName(instance)}, {Name: "PDNS_GPGSQL_DBNAME", Value: defaultPowerDNSDatabase}, {Name: "PDNS_GPGSQL_USER", Value: defaultPowerDNSUser}, {Name: "PDNS_GPGSQL_PASSWORD", ValueFrom: secretKeySelector(postgresSecret, defaultDatabasePasswordKey)}, {Name: "PDNS_API_KEY", ValueFrom: secretKeySelector(apiSecret, defaultPowerDNSAPITokenKey)}},
+						Ports: []corev1.ContainerPort{{Name: "dns-tcp", ContainerPort: defaultPowerDNSPort, Protocol: corev1.ProtocolTCP}, {Name: "dns-udp", ContainerPort: defaultPowerDNSPort, Protocol: corev1.ProtocolUDP}, {Name: "api", ContainerPort: apiPort, Protocol: corev1.ProtocolTCP}},
+						Env: []corev1.EnvVar{{Name: "PDNS_GPGSQL_HOST", Value: postgresName(instance)}, {Name: "PDNS_GPGSQL_DBNAME", Value: defaultPowerDNSDatabase}, {Name: "PDNS_GPGSQL_USER", Value: defaultPowerDNSUser}, {Name: "PDNS_GPGSQL_PASSWORD", ValueFrom: secretKeySelector(postgresSecret, defaultDatabasePasswordKey)}, {Name: "PDNS_API_KEY", ValueFrom: secretKeySelector(apiSecret, defaultPowerDNSAPITokenKey)}, {Name: "PDNS_WEBSERVER_PORT", Value: fmt.Sprintf("%d", apiPort)}},
 					}},
 				},
 			},
@@ -283,18 +293,20 @@ func (r *PowerDNSClusterReconciler) desiredPowerDNSDeployment(instance *platform
 
 func (r *PowerDNSClusterReconciler) desiredPowerDNSAdminService(instance *platformv1alpha1.PowerDNSCluster) *corev1.Service {
 	labels := baseLabels(instance, "powerdns-admin")
+	adminPort := powerDNSAdminPort(instance)
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{Name: adminName(instance), Namespace: instance.Namespace, Labels: labels},
 		Spec: corev1.ServiceSpec{
 			Selector: labels,
 			Type:     serviceTypeOrDefault("ClusterIP"),
-			Ports: []corev1.ServicePort{{Name: "http", Port: defaultPowerDNSAdminPort, TargetPort: intstr.FromInt(defaultPowerDNSAdminPort), Protocol: corev1.ProtocolTCP}},
+			Ports: []corev1.ServicePort{{Name: "http", Port: adminPort, TargetPort: intstr.FromInt(int(adminPort)), Protocol: corev1.ProtocolTCP}},
 		},
 	}
 }
 
 func (r *PowerDNSClusterReconciler) desiredPowerDNSAdminDeployment(instance *platformv1alpha1.PowerDNSCluster) *appsv1.Deployment {
 	labels := baseLabels(instance, "powerdns-admin")
+	adminPort := powerDNSAdminPort(instance)
 	if !instance.Spec.Admin.Enabled {
 		return &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: adminName(instance), Namespace: instance.Namespace}}
 	}
@@ -314,13 +326,17 @@ func (r *PowerDNSClusterReconciler) desiredPowerDNSAdminDeployment(instance *pla
 	if apiSecret == "" {
 		apiSecret = instance.Name + "-powerdns-api"
 	}
+	databaseURISecret := instance.Spec.Admin.DatabaseURISecretRef
+	if databaseURISecret == "" {
+		databaseURISecret = instance.Name + "-powerdns-admin-db"
+	}
 	adminSecret := instance.Spec.Admin.SecretKeySecretRef
 	if adminSecret == "" {
 		adminSecret = instance.Name + "-powerdns-admin"
 	}
 	serviceHost := instance.Spec.Admin.APIURL
 	if serviceHost == "" {
-		serviceHost = fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", powerDNSName(instance), instance.Namespace, defaultPowerDNSAPIHealth)
+		serviceHost = fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", powerDNSName(instance), instance.Namespace, powerDNSAPIPort(instance))
 	}
 
 	return &appsv1.Deployment{
@@ -335,8 +351,8 @@ func (r *PowerDNSClusterReconciler) desiredPowerDNSAdminDeployment(instance *pla
 						Name:            "powerdns-admin",
 						Image:           image,
 						ImagePullPolicy: policy,
-						Ports: []corev1.ContainerPort{{Name: "http", ContainerPort: defaultPowerDNSAdminPort, Protocol: corev1.ProtocolTCP}},
-						Env: []corev1.EnvVar{{Name: "SECRET_KEY", ValueFrom: secretKeySelector(adminSecret, defaultAdminSecretKeyName)}, {Name: "PDNS_API_URL", Value: serviceHost}, {Name: "PDNS_API_TOKEN", ValueFrom: secretKeySelector(apiSecret, defaultPowerDNSAPITokenKey)}, {Name: "POSTGRESQL_HOST", Value: postgresName(instance)}, {Name: "POSTGRESQL_PORT", Value: fmt.Sprintf("%d", defaultPostgreSQLPort)}, {Name: "POSTGRESQL_USER", Value: defaultPowerDNSUser}, {Name: "POSTGRESQL_DATABASE", Value: defaultPowerDNSDatabase}, {Name: "POSTGRESQL_PASSWORD", ValueFrom: secretKeySelector(postgresSecret, defaultDatabasePasswordKey)}},
+						Ports: []corev1.ContainerPort{{Name: "http", ContainerPort: adminPort, Protocol: corev1.ProtocolTCP}},
+						Env: []corev1.EnvVar{{Name: "SECRET_KEY", ValueFrom: secretKeySelector(adminSecret, defaultAdminSecretKeyName)}, {Name: "PDNS_API_URL", Value: serviceHost}, {Name: "PDNS_API_TOKEN", ValueFrom: secretKeySelector(apiSecret, defaultPowerDNSAPITokenKey)}, {Name: "SQLALCHEMY_DATABASE_URI", ValueFrom: secretKeySelector(databaseURISecret, "uri")}},
 					}},
 				},
 			},
@@ -354,6 +370,20 @@ func max32(a, b int32) int32 {
 func serviceTypeOrDefault(value string) corev1.ServiceType {
 	if value == "" { return corev1.ServiceTypeClusterIP }
 	return corev1.ServiceType(value)
+}
+
+func powerDNSAPIPort(instance *platformv1alpha1.PowerDNSCluster) int32 {
+	if instance.Spec.PowerDNS.WebServerPort > 0 {
+		return instance.Spec.PowerDNS.WebServerPort
+	}
+	return defaultPowerDNSAPIHealth
+}
+
+func powerDNSAdminPort(instance *platformv1alpha1.PowerDNSCluster) int32 {
+	if instance.Spec.Admin.ServicePort > 0 {
+		return instance.Spec.Admin.ServicePort
+	}
+	return 80
 }
 
 func secretKeySelector(secretName, key string) *corev1.EnvVarSource {

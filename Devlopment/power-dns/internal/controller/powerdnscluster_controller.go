@@ -50,7 +50,7 @@ func (r *PowerDNSClusterReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		DNS:        instance.Name + "-powerdns." + instance.Namespace + ".svc.cluster.local",
 		PostgreSQL: instance.Name + "-postgresql." + instance.Namespace + ".svc.cluster.local",
 	}
-	if instance.Status.ReadyReplicas >= instance.Spec.Replicas && instance.Spec.Admin.Enabled {
+	if instance.Status.ReadyReplicas >= r.desiredReadyReplicas(instance) {
 		instance.Status.Phase = platformv1alpha1.PowerDNSClusterPhaseReady
 	}
 
