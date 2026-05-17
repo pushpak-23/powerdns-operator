@@ -1,0 +1,24 @@
+{{- if .Values.operator.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "powerdns-platform.fullname" . }}-operator
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "powerdns-platform.name" . }}
+      app.kubernetes.io/component: operator
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: {{ .Values.operator.service.metricsPort }}
+          protocol: TCP
+        - port: {{ .Values.operator.service.healthPort }}
+          protocol: TCP
+  egress:
+    - {}
+{{- end }}

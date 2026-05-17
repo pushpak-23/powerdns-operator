@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: dns-platform
+resources:
+  - cert-manager-issuer.yaml
+  - networkpolicy.yaml
+  - poddisruptionbudget.yaml
+  - powerdnscluster.yaml
+  - servicemonitor.yaml

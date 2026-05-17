@@ -1,0 +1,89 @@
+cluster:
+  name: powerdns
+  replicas: 3
+  image: ghcr.io/pushpak-23/powerdns-authoritative:v0.1.0
+  imagePullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+  powerdns:
+    apiEnabled: true
+    apiKeySecretRef: powerdns-api
+    webServerAddress: 0.0.0.0
+    webServerPort: 8081
+    allowAxfr: true
+    allowIxfr: true
+    enableDnssec: true
+    zoneTransferAcl:
+      - 0.0.0.0/0
+  postgresql:
+    mode: bitnami
+    image: ghcr.io/pushpak-23/powerdns-postgresql:v0.1.0
+    imagePullPolicy: IfNotPresent
+    connectionPooler: false
+    provider: bitnami-ecr
+    storageClass: fast-rwo
+    storageSize: 100Gi
+    credentialsSecretRef: powerdns-postgres
+    syncReplication: false
+    walArchive: false
+    pitr: false
+    backupSchedule: "0 */6 * * *"
+    readReplicas: 0
+    tls: true
+  admin:
+    enabled: true
+    image: ghcr.io/pushpak-23/powerdns-admin:v0.1.0
+    imagePullPolicy: IfNotPresent
+    replicas: 1
+    servicePort: 80
+    ingressHost: ""
+    secretKeySecretRef: powerdns-admin
+    apiUrl: ""
+    apiTokenSecretRef: powerdns-api
+  dnssec:
+    enabled: true
+    kskSecretRef: powerdns-ksk
+    zskSecretRef: powerdns-zsk
+    algorithm: ed25519
+    keyRollInterval: 30d
+  backups:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: 14d
+    target: s3://powerdns-backups/prod
+    verify: true
+  monitoring:
+    serviceMonitor: true
+    prometheusRules: true
+    grafanaDashboards: true
+    openTelemetry: true
+  security:
+    tls: true
+    mtls: true
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    podSecurityStandard: restricted
+    networkPolicies: true
+    secretEncryption: true
+  scheduling:
+    antiAffinity: true
+    topologySpreadConstraints: true
+    zones:
+      - az1
+      - az2
+      - az3
+  scaling:
+    horizontalAutoscaler: true
+    minReplicas: 3
+    maxReplicas: 12
+  openstack:
+    designateEnabled: true
+    keystoneAuth: true
+    tenantIsolation: true
+    reverseDns: true
+    multiRegion: true
+
+secrets:
+  postgresPassword: change-me-now
+  powerdnsApiKey: change-me-now
+  adminSecretKey: change-me-now

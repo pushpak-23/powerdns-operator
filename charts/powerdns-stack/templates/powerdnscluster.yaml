@@ -1,0 +1,90 @@
+apiVersion: dns.powerdns.io/v1alpha1
+kind: PowerDNSCluster
+metadata:
+  name: {{ .Values.cluster.name }}
+spec:
+  replicas: {{ .Values.cluster.replicas }}
+  image: {{ .Values.cluster.image }}
+  imagePullPolicy: {{ .Values.cluster.imagePullPolicy }}
+  service:
+    type: {{ .Values.cluster.service.type }}
+  powerdns:
+    apiEnabled: {{ .Values.cluster.powerdns.apiEnabled }}
+    apiKeySecretRef: {{ include "powerdns-stack.fullname" . }}-powerdns-api
+    webServerAddress: {{ .Values.cluster.powerdns.webServerAddress | quote }}
+    webServerPort: {{ .Values.cluster.powerdns.webServerPort }}
+    allowAxfr: {{ .Values.cluster.powerdns.allowAxfr }}
+    allowIxfr: {{ .Values.cluster.powerdns.allowIxfr }}
+    enableDnssec: {{ .Values.cluster.powerdns.enableDnssec }}
+    zoneTransferAcl:
+{{- range .Values.cluster.powerdns.zoneTransferAcl }}
+      - {{ . | quote }}
+{{- end }}
+  postgresql:
+    mode: {{ .Values.cluster.postgresql.mode }}
+    image: {{ .Values.cluster.postgresql.image }}
+    imagePullPolicy: {{ .Values.cluster.postgresql.imagePullPolicy }}
+    connectionPooler: {{ .Values.cluster.postgresql.connectionPooler }}
+    provider: {{ .Values.cluster.postgresql.provider | quote }}
+    storageClass: {{ .Values.cluster.postgresql.storageClass }}
+    storageSize: {{ .Values.cluster.postgresql.storageSize }}
+    credentialsSecretRef: {{ include "powerdns-stack.fullname" . }}-postgres
+    syncReplication: {{ .Values.cluster.postgresql.syncReplication }}
+    walArchive: {{ .Values.cluster.postgresql.walArchive }}
+    pitr: {{ .Values.cluster.postgresql.pitr }}
+    backupSchedule: {{ .Values.cluster.postgresql.backupSchedule | quote }}
+    readReplicas: {{ .Values.cluster.postgresql.readReplicas }}
+    tls: {{ .Values.cluster.postgresql.tls }}
+  admin:
+    enabled: {{ .Values.cluster.admin.enabled }}
+    image: {{ .Values.cluster.admin.image }}
+    imagePullPolicy: {{ .Values.cluster.admin.imagePullPolicy }}
+    replicas: {{ .Values.cluster.admin.replicas }}
+    servicePort: {{ .Values.cluster.admin.servicePort }}
+    ingressHost: {{ .Values.cluster.admin.ingressHost | quote }}
+    secretKeySecretRef: {{ include "powerdns-stack.fullname" . }}-powerdns-admin
+    apiUrl: {{ .Values.cluster.admin.apiUrl | quote }}
+    apiTokenSecretRef: {{ include "powerdns-stack.fullname" . }}-powerdns-api
+    databaseUriSecretRef: {{ include "powerdns-stack.fullname" . }}-powerdns-admin-db
+  dnssec:
+    enabled: {{ .Values.cluster.dnssec.enabled }}
+    kskSecretRef: {{ .Values.cluster.dnssec.kskSecretRef }}
+    zskSecretRef: {{ .Values.cluster.dnssec.zskSecretRef }}
+    algorithm: {{ .Values.cluster.dnssec.algorithm }}
+    keyRollInterval: {{ .Values.cluster.dnssec.keyRollInterval | quote }}
+  backups:
+    enabled: {{ .Values.cluster.backups.enabled }}
+    schedule: {{ .Values.cluster.backups.schedule | quote }}
+    retention: {{ .Values.cluster.backups.retention | quote }}
+    target: {{ .Values.cluster.backups.target | quote }}
+    verify: {{ .Values.cluster.backups.verify }}
+  monitoring:
+    serviceMonitor: {{ .Values.cluster.monitoring.serviceMonitor }}
+    prometheusRules: {{ .Values.cluster.monitoring.prometheusRules }}
+    grafanaDashboards: {{ .Values.cluster.monitoring.grafanaDashboards }}
+    openTelemetry: {{ .Values.cluster.monitoring.openTelemetry }}
+  security:
+    tls: {{ .Values.cluster.security.tls }}
+    mtls: {{ .Values.cluster.security.mtls }}
+    readOnlyRootFilesystem: {{ .Values.cluster.security.readOnlyRootFilesystem }}
+    runAsNonRoot: {{ .Values.cluster.security.runAsNonRoot }}
+    podSecurityStandard: {{ .Values.cluster.security.podSecurityStandard | quote }}
+    networkPolicies: {{ .Values.cluster.security.networkPolicies }}
+    secretEncryption: {{ .Values.cluster.security.secretEncryption }}
+  scheduling:
+    antiAffinity: {{ .Values.cluster.scheduling.antiAffinity }}
+    topologySpreadConstraints: {{ .Values.cluster.scheduling.topologySpreadConstraints }}
+    zones:
+{{- range .Values.cluster.scheduling.zones }}
+      - {{ . | quote }}
+{{- end }}
+  scaling:
+    horizontalAutoscaler: {{ .Values.cluster.scaling.horizontalAutoscaler }}
+    minReplicas: {{ .Values.cluster.scaling.minReplicas }}
+    maxReplicas: {{ .Values.cluster.scaling.maxReplicas }}
+  openstack:
+    designateEnabled: {{ .Values.cluster.openstack.designateEnabled }}
+    keystoneAuth: {{ .Values.cluster.openstack.keystoneAuth }}
+    tenantIsolation: {{ .Values.cluster.openstack.tenantIsolation }}
+    reverseDns: {{ .Values.cluster.openstack.reverseDns }}
+    multiRegion: {{ .Values.cluster.openstack.multiRegion }}

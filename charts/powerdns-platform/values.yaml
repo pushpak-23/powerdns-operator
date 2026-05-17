@@ -1,0 +1,65 @@
+global:
+  imageRegistry: ghcr.io/pushpak-23
+  pullPolicy: IfNotPresent
+
+operator:
+  enabled: true
+  image: ghcr.io/pushpak-23/powerdns-platform-operator:v0.1.0
+  replicas: 2
+  service:
+    metricsPort: 8080
+    healthPort: 8081
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  networkPolicy:
+    enabled: true
+  serviceMonitor:
+    enabled: true
+  ingress:
+    enabled: false
+  hpa:
+    enabled: false
+
+cluster:
+  name: pdns
+  replicas: 3
+  image: ghcr.io/pushpak-23/powerdns-authoritative:v0.1.0
+  apiEnabled: true
+  dnssecEnabled: true
+  postgres:
+    mode: cloudnativepg
+    storageClass: fast-rwo
+    storageSize: 100Gi
+    connectionPooler: true
+    syncReplication: true
+    walArchive: true
+    pitr: true
+  backups:
+    enabled: true
+    schedule: "0 */6 * * *"
+    retention: 14d
+  monitoring:
+    serviceMonitor: true
+    prometheusRules: true
+    grafanaDashboards: true
+  security:
+    tls: true
+    mtls: true
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    networkPolicies: true
+  scaling:
+    horizontalAutoscaler: true
+    minReplicas: 3
+    maxReplicas: 12
+  scheduling:
+    antiAffinity: true
+    topologySpreadConstraints: true

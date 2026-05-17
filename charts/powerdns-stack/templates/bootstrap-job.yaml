@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "powerdns-stack.fullname" . }}-schema-bootstrap
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: psql
+          image: {{ .Values.cluster.postgresql.image }}
+          imagePullPolicy: {{ .Values.cluster.postgresql.imagePullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              until pg_isready -h {{ .Values.cluster.name }}-postgresql -U powerdns -d powerdns; do
+                sleep 2
+              done
+              psql -h {{ .Values.cluster.name }}-postgresql -U powerdns -d powerdns -v ON_ERROR_STOP=1 -f /schema/schema.sql
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "powerdns-stack.fullname" . }}-postgres
+                  key: postgres-password
+          volumeMounts:
+            - name: schema
+              mountPath: /schema
+      volumes:
+        - name: schema
+          configMap:
+            name: {{ include "powerdns-stack.fullname" . }}-schema

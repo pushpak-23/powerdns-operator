@@ -1,0 +1,12 @@
+{{- if .Values.operator.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "powerdns-platform.fullname" . }}-operator
+spec:
+  minAvailable: {{ .Values.operator.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "powerdns-platform.name" . }}
+      app.kubernetes.io/component: operator
+{{- end }}
