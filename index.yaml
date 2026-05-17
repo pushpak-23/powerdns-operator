@@ -1,0 +1,26 @@
+apiVersion: v1
+entries:
+  powerdns-platform:
+  - apiVersion: v2
+    appVersion: "4.8"
+    created: "2026-05-17T08:13:04.59868915Z"
+    description: Enterprise PowerDNS platform managed by a Kubernetes operator
+    digest: 569f5ef9613724ba3ccea8d27e25f8cd45b2488caa8b3d799fb3046a4ce4bf3f
+    name: powerdns-platform
+    type: application
+    urls:
+    - https://pushpak-23.github.io/powerdns-operator/powerdns-platform-0.1.0.tgz
+    version: 0.1.0
+  powerdns-stack:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2026-05-17T08:13:04.616578176Z"
+    description: Application chart for deploying PowerDNS, PostgreSQL, and PowerDNS
+      Admin through the PowerDNS operator
+    digest: e52f616156f5132b02702ca0baf48172836467624ec8ac6fc664af1e3e8493dd
+    name: powerdns-stack
+    type: application
+    urls:
+    - https://pushpak-23.github.io/powerdns-operator/powerdns-stack-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-05-17T08:13:04.597949128Z"
