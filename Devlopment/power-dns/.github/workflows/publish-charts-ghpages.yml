@@ -1,0 +1,44 @@
+name: Publish Helm charts to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+permissions:
+  contents: write
+
+jobs:
+  publish-gh-pages:
+    name: Package and publish charts to gh-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+
+      - name: Package charts
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          charts=("charts/powerdns-platform" "charts/powerdns-stack")
+          for c in "${charts[@]}"; do
+            if [ -d "$c" ]; then
+              echo "Packaging $c"
+              helm package "$c" --destination dist
+            else
+              echo "Skipping $c (not found)"
+            fi
+          done
+          ls -lah dist || true
+
+      - name: Publish charts to gh-pages
+        uses: helm/chart-releaser-action@v1
+        with:
+          charts_dir: dist
+          release_branch: gh-pages
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
