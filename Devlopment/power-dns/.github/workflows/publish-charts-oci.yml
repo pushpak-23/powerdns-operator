@@ -1,0 +1,50 @@
+name: Publish Helm charts (OCI to GitHub Packages)
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Package and publish charts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+
+      - name: Login to GitHub Packages (ghcr)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GITHUB_TOKEN" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Package and push charts
+        env:
+          OCI_REGISTRY: ghcr.io/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/chartpkg
+          charts=("charts/powerdns-platform" "charts/powerdns-stack")
+          for c in "${charts[@]}"; do
+            if [ -d "$c" ]; then
+              echo "Packaging $c"
+              helm package "$c" --destination /tmp/chartpkg
+            else
+              echo "Skipping $c (not found)"
+            fi
+          done
+          ls -lah /tmp/chartpkg || true
+          for pkg in /tmp/chartpkg/*.tgz; do
+            [ -e "$pkg" ] || continue
+            echo "Pushing $pkg to ${OCI_REGISTRY}"
+            helm push "$pkg" oci://${OCI_REGISTRY}
+          done
