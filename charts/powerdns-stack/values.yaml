@@ -1,7 +1,7 @@
 cluster:
   name: powerdns
   replicas: 3
-  image: ghcr.io/pushpak-23/powerdns-authoritative:v0.1.0
+  image: pushpak23/powerdns-authoritative:v0.1.0
   imagePullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -17,7 +17,7 @@ cluster:
       - 0.0.0.0/0
   postgresql:
     mode: bitnami
-    image: ghcr.io/pushpak-23/powerdns-postgresql:v0.1.0
+    image: pushpak23/powerdns-postgresql:v0.1.0
     imagePullPolicy: IfNotPresent
     connectionPooler: false
     provider: bitnami-ecr
@@ -32,7 +32,7 @@ cluster:
     tls: true
   admin:
     enabled: true
-    image: ghcr.io/pushpak-23/powerdns-admin:v0.1.0
+    image: pushpak23/powerdns-admin:v0.1.0
     imagePullPolicy: IfNotPresent
     replicas: 1
     servicePort: 80

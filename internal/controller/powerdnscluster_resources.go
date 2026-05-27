@@ -18,9 +18,9 @@ import (
 )
 
 const (
-	defaultPowerDNSImage       = "ghcr.io/example/powerdns-authoritative:4.8"
+	defaultPowerDNSImage       = "pushpak23/powerdns-authoritative:4.8"
 	defaultPostgreSQLImage     = "public.ecr.aws/bitnami/postgresql:16"
-	defaultPowerDNSAdminImage  = "ghcr.io/example/powerdns-admin:latest"
+	defaultPowerDNSAdminImage  = "pushpak23/powerdns-admin:latest"
 	defaultPowerDNSPort        = 53
 	defaultPowerDNSAPIHealth   = 8081
 	defaultPostgreSQLPort      = 5432

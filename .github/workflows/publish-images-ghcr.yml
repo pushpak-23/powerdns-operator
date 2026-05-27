@@ -1,4 +1,4 @@
-name: Build and publish images to GHCR
+name: Build and publish images to Docker Hub
 
 on:
   push:
@@ -8,8 +8,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -23,12 +21,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Login to GHCR
+      - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push operator image
         uses: docker/build-push-action@v4
@@ -37,7 +34,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/powerdns-platform-operator:v0.1.0
+            pushpak23/powerdns-platform-operator:v0.1.0
 
       - name: Build and push powerdns authoritative image
         uses: docker/build-push-action@v4
@@ -46,7 +43,7 @@ jobs:
           file: ./images/powerdns/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/powerdns-authoritative:v0.1.0
+            pushpak23/powerdns-authoritative:v0.1.0
 
       - name: Build and push postgresql image
         uses: docker/build-push-action@v4
@@ -55,7 +52,7 @@ jobs:
           file: ./images/postgresql/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/powerdns-postgresql:v0.1.0
+            pushpak23/powerdns-postgresql:v0.1.0
 
       - name: Build and push powerdns-admin image
         uses: docker/build-push-action@v4
@@ -64,4 +61,4 @@ jobs:
           file: ./images/powerdns-admin/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/powerdns-admin:v0.1.0
+            pushpak23/powerdns-admin:v0.1.0

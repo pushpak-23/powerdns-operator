@@ -1,10 +1,10 @@
 global:
-  imageRegistry: ghcr.io/pushpak-23
+  imageRegistry: ""
   pullPolicy: IfNotPresent
 
 operator:
   enabled: true
-  image: ghcr.io/pushpak-23/powerdns-platform-operator:v0.1.0
+  image: pushpak23/powerdns-platform-operator:v0.1.0
   replicas: 2
   service:
     metricsPort: 8080
@@ -31,7 +31,7 @@ operator:
 cluster:
   name: pdns
   replicas: 3
-  image: ghcr.io/pushpak-23/powerdns-authoritative:v0.1.0
+  image: pushpak23/powerdns-authoritative:v0.1.0
   apiEnabled: true
   dnssecEnabled: true
   postgres:

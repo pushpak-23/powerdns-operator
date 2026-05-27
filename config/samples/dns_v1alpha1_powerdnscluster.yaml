@@ -4,7 +4,7 @@ metadata:
   name: example
 spec:
   replicas: 3
-  image: ghcr.io/example/powerdns-authoritative:4.8
+  image: pushpak23/powerdns-authoritative:4.8
   powerdns:
     apiEnabled: true
     apiKeySecretRef: powerdns-api-key

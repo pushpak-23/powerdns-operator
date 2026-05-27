@@ -4,3 +4,15 @@ description: Enterprise PowerDNS platform managed by a Kubernetes operator
 type: application
 version: 0.1.0
 appVersion: "4.8"
+home: https://github.com/pushpak-23/powerdns-operator
+sources:
+  - https://github.com/pushpak-23/powerdns-operator
+keywords:
+  - powerdns
+  - dns
+  - operator
+  - kubernetes
+  - postgres
+  - designate
+maintainers:
+  - name: pushpak-23
