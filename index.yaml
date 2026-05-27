@@ -3,9 +3,9 @@ entries:
   powerdns-platform:
   - apiVersion: v2
     appVersion: "4.8"
-    created: "2026-05-27T06:54:41.837775694Z"
+    created: "2026-05-27T12:38:52.855786349+05:30"
     description: Enterprise PowerDNS platform managed by a Kubernetes operator
-    digest: e234dd6ce6a16a718e23113e7a0b104196ad4f19f1807af1c8b7c2e5309fa007
+    digest: 404de23b1e7d0d4fa86978fd7909300209df833735d7a15ece2a727d9abff1a5
     home: https://github.com/pushpak-23/powerdns-operator
     keywords:
     - powerdns
@@ -21,15 +21,15 @@ entries:
     - https://github.com/pushpak-23/powerdns-operator
     type: application
     urls:
-    - https://pushpak-23.github.io/powerdns-operator/powerdns-platform-0.1.0.tgz
-    version: 0.1.0
+    - https://pushpak-23.github.io/powerdns-operator/powerdns-platform-0.1.1.tgz
+    version: 0.1.1
   powerdns-stack:
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2026-05-27T06:54:41.838215438Z"
+    created: "2026-05-27T12:38:52.856061907+05:30"
     description: Application chart for deploying PowerDNS, PostgreSQL, and PowerDNS
       Admin through the PowerDNS operator
-    digest: 3475be99ceffe2864fe5445ec16bd88841c8c7351d1b877086f23c37987881cf
+    digest: 0774cbd0fc4c9aa0c1e55c92b0aa68135ccb670cea912117eec9bffd992f7e7a
     home: https://github.com/pushpak-23/powerdns-operator
     keywords:
     - powerdns
@@ -45,6 +45,6 @@ entries:
     - https://github.com/pushpak-23/powerdns-operator
     type: application
     urls:
-    - https://pushpak-23.github.io/powerdns-operator/powerdns-stack-0.1.0.tgz
-    version: 0.1.0
-generated: "2026-05-27T06:54:41.837171806Z"
+    - https://pushpak-23.github.io/powerdns-operator/powerdns-stack-0.1.2.tgz
+    version: 0.1.2
+generated: "2026-05-27T12:38:52.855449822+05:30"
